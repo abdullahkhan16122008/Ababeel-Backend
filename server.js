@@ -1,4 +1,5 @@
 let express = require('express');
+require('dotenv').config();
 let app = express();
 let port = 4000;
 let cookieParser = require('cookie-parser');
@@ -6,7 +7,6 @@ let mongoose = require('mongoose');
 let cors = require('cors');
 const userRouter = require('./routes/index.route');
 let fileUpload = require('express-fileupload');
-require('dotenv').config();
 let cloudinary = require('cloudinary').v2;
 
 let cloudinaryConfig = cloudinary.config({
