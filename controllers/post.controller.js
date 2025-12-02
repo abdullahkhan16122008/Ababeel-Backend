@@ -93,11 +93,11 @@ let likePostController = async (req, res) => {
             return res.status(201).json({ message: 'Post not found' });
         }
         if (post.likes.includes(username)) {
-            return res.status(201).json({ message: 'User has already liked this post' });
+            return res.status(201).json({success: false});
         }
         post.likes.push({ username, profilePicture });
         await post.save();
-        res.status(200).json({ message: 'Post liked successfully', likes: post.likes });
+        res.status(200).json({ likes: post.likes, success: true });
     } catch (err) {
         res.status(203).json({ message: 'Error liking post' });
     }
