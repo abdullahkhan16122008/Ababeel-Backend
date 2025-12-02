@@ -4,7 +4,7 @@ let { registerController, loginController } = require('../controllers/authentica
 const { validateRegistration, validateLogin } = require('../middlewares/validation.middleware.js');
 const { validatePost } = require('../middlewares/post.middleware.js');
 const { upload } = require('../multer/multer.js');
-const { postController, getPostsController, likePostController, commentPostController, editPostController, deletePostController, getCommentController, getPostLikesController } = require('../controllers/post.controller.js');
+const { postController, getPostsController, likePostController, commentPostController, editPostController, deletePostController, getCommentController, getPostLikesController, getReelsController } = require('../controllers/post.controller.js');
 const { getProfile, getProfilePosts, updateProfile } = require('../controllers/profile.controller.js');
 
 // Registration route
@@ -12,6 +12,7 @@ userRouter.post('/api/register', validateRegistration, registerController);
 userRouter.post('/api/login', validateLogin, loginController);
 userRouter.post('/api/post', postController);
 userRouter.post('/api/get/posts', getPostsController);
+userRouter.post('/api/get/reels', getReelsController);
 userRouter.post('/api/like/post', likePostController);
 userRouter.post('/api/get/post/likes', getPostLikesController);
 userRouter.post('/api/comment/post', commentPostController);

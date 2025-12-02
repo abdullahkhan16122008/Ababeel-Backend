@@ -4,39 +4,64 @@ let cloudinary = require('cloudinary').v2;
 
 
 let postController = async (req, res) => {
-    // Post creation logic here
-    let { type, userId, caption, hashtags, visibility, location } = req.body;
+
+    let { type, userId, caption, hashtags, visibility, location, username, profilePicture } = req.body;
+
+    // Check file exists
+    if (!req.files || !req.files.media) {
+        return res.status(400).json({ message: "Media file is required!" });
+    }
 
     const media = req.files.media;
 
-    // file null bhi ho sakti hai (text post)
-    let mediaUrl = await cloudinary.uploader.upload(media.tempFilePath, {
-        folder: 'posts',
-        resource_type: (req.body.type === "video" || req.body.type === "reel")
-            ? "video"
-            : "image"
-    }).then((result) => {
-        return result.secure_url;
-    }).catch((err) => {
-        return res.status(201).json({ message: `Post Type is ${(type === 'video' || type === 'reel') ? `Reel` : 'Image'} so Upload a ${(type === 'video' || type === 'reel') ? `Reel` : 'Image'}` });
+    let mediaUrl;
 
-    });
-
-    let newPost = new Post({
-        type,
-        userId,
-        caption,
-        mediaUrl,
-        hashtags,
-        visibility,
-        location,
-        createdAt: new Date()
-    });
     try {
-        await newPost.save();
-        res.status(201).json({ message: 'Post created successfully' });
+        // Upload to cloudinary
+        const result = await cloudinary.uploader.upload(media.tempFilePath, {
+            folder: "posts",
+            resource_type:
+                type === "video" || type === "reel"
+                    ? "video"
+                    : "image"
+        });
+
+        mediaUrl = result.secure_url;
+
     } catch (err) {
-        res.status(201).json({ message: 'Error creating post' });
+        return res.status(400).json({
+            message: `Post type is ${
+                type === "video" || type === "reel" ? "Reel" : "Image"
+            }, so upload a valid ${type === "video" || type === "reel" ? "Reel/video" : "Image"}.`
+        });
+    }
+
+    // Save post in DB
+    try {
+        let newPost = new Post({
+            type,
+            userId,
+            caption,
+            mediaUrl,
+            hashtags,
+            visibility,
+            location,
+            username,
+            profilePicture
+        });
+
+        await newPost.save();
+
+        return res.status(201).json({
+            message: "Post created successfully",
+            post: newPost
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Error saving post to database",
+            error: err.message
+        });
     }
 };
 
@@ -44,7 +69,16 @@ let getPostsController = async (req, res) => {
     // Logic to get posts
     try {
         let allPosts = await Post.find();
-        res.status(200).json(allPosts);
+        res.status(200).json({ posts: allPosts });
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching posts' });
+    }
+};
+let getReelsController = async (req, res) => {
+    // Logic to get posts
+    try {
+        let reels = await Post.find({type: 'reel'});
+        res.status(200).json({ reels });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching posts' });
     }
@@ -87,41 +121,41 @@ let getPostLikesController = async (req, res) => {
 };
 
 let commentPostController = async (req, res) => {
-try {
-    const { postId, username, profilePicture, text } = req.body;
+    try {
+        const { postId, username, profilePicture, text } = req.body;
 
-    const comment = await Comment.create({
-      postId,
-      username,
-      profilePicture,
-      text
-    });
+        const comment = await Comment.create({
+            postId,
+            username,
+            profilePicture,
+            text
+        });
 
-    return res.status(201).json({
-      message: "Comment added successfully",
-      comment,
-      success: true
-    });
-  } catch (err) {
-    return res.status(203).json({ message: "Error adding comment", error: err });
-  }
+        return res.status(201).json({
+            message: "Comment added successfully",
+            comment,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error adding comment", error: err });
+    }
 };
 
 let getCommentController = async (req, res) => {
-try {
-    const { postId } = req.body;
+    try {
+        const { postId } = req.body;
 
-    const comments = await Comment.find({
-      postId
-    });
+        const comments = await Comment.find({
+            postId
+        });
 
-    return res.status(201).json({
-      comments,
-      success: true
-    });
-  } catch (err) {
-    return res.status(203).json({ message: "Error getting comments", error: err });
-  }
+        return res.status(201).json({
+            comments,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error getting comments", error: err });
+    }
 };
 
 let editPostController = async (req, res) => {
@@ -166,5 +200,6 @@ module.exports = {
     editPostController,
     deletePostController,
     getCommentController,
-    getPostLikesController
+    getPostLikesController,
+    getReelsController
 };

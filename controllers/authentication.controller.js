@@ -58,7 +58,7 @@ let loginController = async (req, res) => {
 
     let token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
     res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 1000 * 60 * parseInt(process.env.TOKEN_COOKIE_EXPIRES_IN) }); // 1 hour
-    res.status(200).json({ token, message: 'Login successful', user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }, success: true });
+    res.status(200).json({ token, message: 'Login successful', user, success: true });
 }
 
 

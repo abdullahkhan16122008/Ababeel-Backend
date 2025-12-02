@@ -64,6 +64,10 @@ const postSchema = new mongoose.Schema(
       default: 0
     },
 
+    profilePicture: {
+      type: String
+    },
+
     location: {
       type: String
     }
