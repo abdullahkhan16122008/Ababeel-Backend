@@ -18,7 +18,8 @@ let userSchema = new mongoose.Schema({
     followers: [followerSchema],
     following: [followerSchema],
     profilePicture: {type: String},
-    role: { type: String, enum: ['user', 'manager', 'admin'], default: 'user'}
+    role: { type: String, enum: ['user', 'manager', 'admin'], default: 'user'},
+    refreshToken: { type: String }
 }, { timestamps: true }
 );
 let User = mongoose.model('User', userSchema);

@@ -1,5 +1,6 @@
 const Comment = require('../models/comment.js');
 const Post = require('../models/posts.js');
+const Reply = require('../models/replies.js');
 let cloudinary = require('cloudinary').v2;
 
 
@@ -103,6 +104,25 @@ let likePostController = async (req, res) => {
     }
 };
 
+let dislikePostController = async (req, res) => {
+    // Logic to dislike a post
+    let { postId, username, profilePicture } = req.body;
+    try {
+        let post = await Post.findById(postId);
+        if (!post) {
+            return res.status(201).json({ message: 'Post not found' });
+        }
+        post.likes = post.likes.filter(like => {
+            like.username !== username
+            like.profilePicture !== profilePicture
+        });
+        await post.save();
+        res.status(200).json({ likes: post.likes, success: true });
+    } catch (err) {
+        res.status(203).json({ message: 'Error disliking post', success: false });
+    }
+};
+
 let getPostLikesController = async (req, res) => {
     // Logic to like a post
     let { postId, username } = req.body;
@@ -138,6 +158,131 @@ let commentPostController = async (req, res) => {
         });
     } catch (err) {
         return res.status(203).json({ message: "Error adding comment", error: err });
+    }
+};
+
+let replyCommentController = async (req, res) => {
+    try {
+        const { commentId, replyTo, username, profilePicture, text } = req.body;
+
+        let replyComment = new Reply({ commentId, replyTo, username, profilePicture, text });
+
+        await replyComment.save();
+        return res.status(201).json({
+            // message: "Reply added successfully",
+            replyComment,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error adding reply", error: err });
+    }
+};
+
+let likeCommentController = async (req, res) => {
+    try {
+        const { commentId, username } = req.body;
+        const comment = await Comment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+        if (comment.likes.some(like => like.username === username)) {
+            return res.status(200).json({ message: "Comment already liked", success: false });
+        }
+        comment.likes.push({ username });
+        await comment.save();
+        return res.status(201).json({
+            // message: "Comment liked successfully",
+            comment,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error liking comment", error: err });
+    }
+};
+
+let dislikeCommentController = async (req, res) => {
+    try {
+        const { commentId, username } = req.body;
+        const comment = await Comment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+        comment.likes = comment.likes.filter(like => like.username !== username);
+        await comment.save();
+        return res.status(201).json({
+            // message: "Comment disliked successfully",
+            comment,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error disliking comment", error: err });
+    }
+};
+
+let likeReplyController = async (req, res) => {
+    let { replyId, username } = req.body;
+    try {
+        let reply = await Reply.findById(replyId);
+        if (!reply) {
+            return res.status(404).json({ message: "Reply not found" });
+        }
+        if (reply.likes.some(like => like.username === username)) {
+            return res.status(200).json({ message: "Reply already liked", success: false });
+        }
+        reply.likes.push({ username });
+        await reply.save();
+        return res.status(201).json({
+            // message: "Reply liked successfully",
+            reply,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error liking reply", error: err });
+    }
+};
+
+let dislikeReplyController = async (req, res) => {
+    let { replyId, username } = req.body;
+    try {
+        let reply = await Reply.findById(replyId);
+        if (!reply) {
+            return res.status(404).json({ message: "Reply not found" });
+        }
+        reply.likes = reply.likes.filter(like => like.username !== username);
+        await reply.save();
+        return res.status(201).json({
+            // message: "Reply disliked successfully",
+            reply,
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error disliking reply", error: err });
+    }
+};
+
+let deleteCommentController = async (req, res) => {
+    try {
+        const { commentId } = req.body;
+        await Comment.findByIdAndDelete(commentId);
+        return res.status(201).json({
+            message: "Comment deleted successfully",
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error deleting comment", error: err });
+    }
+};
+
+let deleteReplyController = async (req, res) => {
+    try {
+        const { replyId } = req.body;
+        await Reply.findByIdAndDelete(replyId);
+        return res.status(201).json({
+            message: "Reply deleted successfully",
+            success: true
+        });
+    } catch (err) {
+        return res.status(203).json({ message: "Error deleting reply", error: err });
     }
 };
 
@@ -201,5 +346,13 @@ module.exports = {
     deletePostController,
     getCommentController,
     getPostLikesController,
-    getReelsController
+    getReelsController,
+    dislikePostController,
+    replyCommentController,
+    likeCommentController,
+    dislikeCommentController,
+    likeReplyController,
+    dislikeReplyController,
+    deleteCommentController,
+    deleteReplyController
 };
