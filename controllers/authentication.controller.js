@@ -149,14 +149,14 @@ let refreshTokenController = async (req, res) => {
 
         res.cookie('access_token', newAccessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'none',
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie('refresh_token', newRefreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
